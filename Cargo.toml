@@ -3,6 +3,5 @@ name = "pong-rw"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
-macroquad = "0.4.14"
-wasm-bindgen = "0.2.114"
+[profile.release]
+lto = "thin"
