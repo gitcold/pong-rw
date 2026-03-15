@@ -1,6 +1,6 @@
 [package]
-name = "pong-rw"
-version = "0.1.0"
+name = "pongrw"
+version = "0.1.1"
 edition = "2024"
 
 [profile.release]

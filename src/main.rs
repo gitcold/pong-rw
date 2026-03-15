@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use wasm_bindgen::prelude::*;
 
 const WINDOW_WIDTH: f32 = 400.0;
 const WINDOW_HEIGHT: f32 = 300.0;
@@ -21,7 +22,7 @@ enum GameState {
     Gameover,
 }
 
-#[macroquad::main("pong-rw")]
+#[macroquad::main("pongrw")]
 async fn main() {
     request_new_screen_size(WINDOW_WIDTH, WINDOW_HEIGHT);
 
