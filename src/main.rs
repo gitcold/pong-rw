@@ -1,5 +1,12 @@
 use macroquad::prelude::*;
 use wasm_bindgen::prelude::*;
+//use macroquad::audio::{load_sound_from_bytes,play_sound,PlaySoundParams,load_sound,Sound};
+//mod music;
+//use music::MusicPlayer;
+//use anyhow::Result;
+
+//const MUSIC_BYTES: &[u8] = include_bytes!("../assets/bgm.ogg");
+const FONT_BYTES: &[u8] = include_bytes!("../assets/nova-round.ttf");
 
 const WINDOW_WIDTH: f32 = 400.0;
 const WINDOW_HEIGHT: f32 = 300.0;
@@ -10,12 +17,19 @@ const PADDLE_Y: f32 = 260.0;
 const PADDLE_VEC: f32 = 240.0;
 
 const BALL_SIZE: f32 = 10.0;
-const BALL_VEL_INIT: f32 = 100.0;
-const BALL_VEL_MAX: f32 = 300.0;
+const BALL_VEL_INIT: f32 = 130.0;
+const BALL_VEL_MAX: f32 = 230.0;
 
-const POINT_POS: Vec2 = Vec2::new(WINDOW_WIDTH / 2.0 - 40.0, 14.0);
+const POINT_POS: Vec2 = Vec2::new(WINDOW_WIDTH / 2.0 - 40.0, 20.0);
 const TEXT_LOSE_POS: Vec2 = Vec2::new(WINDOW_WIDTH / 2.0 - 60.0, WINDOW_HEIGHT / 2.0);
 const TEXT_LOSE_CONTEXT: &str = "You lose!";
+
+const BUTTON_RESTART_POS: Vec2 = Vec2::new(
+    WINDOW_WIDTH / 2.0 - BUTTON_RESTART_WIDTH / 2.0,
+    WINDOW_HEIGHT / 2.0 + 20.0,
+);
+const BUTTON_RESTART_WIDTH: f32 = 80.0;
+const BUTTON_RESTART_HEIGHT: f32 = 30.0;
 
 enum GameState {
     Playing,
@@ -26,6 +40,18 @@ enum GameState {
 async fn main() {
     request_new_screen_size(WINDOW_WIDTH, WINDOW_HEIGHT);
 
+    let my_font = load_ttf_font_from_bytes(FONT_BYTES).expect("none font:无法加载字体");
+
+    //let mut music_player = MusicPlayer::new(MUSIC_BYTES).await?;
+    //music_player.play()?;
+    //let bg_music = load_sound_from_bytes(MUSIC_BYTES).await;
+    //let bg_music = load_sound("../assets/bg_music.ogg").await;
+    /*let params = PlaySoundParams {
+            looped: true,
+            volume: 100.0,
+        };
+    */
+    //play_sound(&bg_music,params);
     let mut paddle_x = WINDOW_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
     let mut game_state = GameState::Playing;
     let mut point = 0;
@@ -49,6 +75,16 @@ async fn main() {
                     paddle_x -= PADDLE_VEC * dt;
                 } else {
                     paddle_x = mouse_position().0 - PADDLE_WIDTH / 2.0;
+                }
+            } else if is_key_down(KeyCode::Left) {
+                paddle_x -= PADDLE_VEC * dt;
+                if paddle_x < 0.0 - PADDLE_WIDTH / 2.0 {
+                    paddle_x = 0.0 - PADDLE_WIDTH / 2.0;
+                }
+            } else if is_key_down(KeyCode::Right) {
+                paddle_x += PADDLE_VEC * dt;
+                if paddle_x > WINDOW_WIDTH - PADDLE_WIDTH / 2.0 {
+                    paddle_x = WINDOW_WIDTH - PADDLE_WIDTH / 2.0;
                 }
             }
 
@@ -77,12 +113,39 @@ async fn main() {
                 ball_vel.y = -ball_vel.y;
                 ball_pos.y = PADDLE_Y - BALL_SIZE / 2.0;
                 point += 1;
-                if ball_vel.x <= BALL_VEL_MAX {
+                if ball_vel.x < BALL_VEL_MAX {
                     ball_vel.x *= rand::gen_range(1.05, 1.3);
+                    if ball_vel.x > BALL_VEL_MAX {
+                        ball_vel.x = BALL_VEL_MAX * rand::gen_range(1.01, 1.03);
+                    }
                 }
-                if ball_vel.y <= BALL_VEL_MAX {
+                if ball_vel.y < BALL_VEL_MAX {
                     ball_vel.y *= rand::gen_range(1.05, 1.1);
+                    if ball_vel.y > BALL_VEL_MAX {
+                        ball_vel.y = BALL_VEL_MAX * rand::gen_range(1.01, 1.03);
+                    }
                 }
+            }
+        }
+        if let GameState::Gameover = game_state {
+            if is_key_down(KeyCode::R)
+                || mouse_position().0 >= BUTTON_RESTART_POS.x
+                    && mouse_position().0 <= BUTTON_RESTART_POS.x + BUTTON_RESTART_WIDTH
+                    && mouse_position().1 >= BUTTON_RESTART_POS.y
+                    && mouse_position().1 <= BUTTON_RESTART_POS.y + BUTTON_RESTART_HEIGHT
+                    && is_mouse_button_pressed(MouseButton::Left)
+            {
+                paddle_x = WINDOW_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
+                game_state = GameState::Playing;
+                point = 0;
+                ball_pos = vec2(
+                    rand::gen_range(BALL_SIZE, WINDOW_WIDTH - BALL_SIZE),
+                    BALL_SIZE * 2.0,
+                );
+                ball_vel = vec2(
+                    rand::gen_range(-BALL_VEL_INIT, BALL_VEL_INIT) * 2.0,
+                    rand::gen_range(0.0, BALL_VEL_INIT),
+                );
             }
         }
 
@@ -94,21 +157,47 @@ async fn main() {
             BALL_SIZE / 2.0,
             WHITE,
         );
-        draw_text(
+        draw_text_ex(
             &format!("Point: {}", point),
             POINT_POS.x,
             POINT_POS.y,
-            20.0,
-            WHITE,
+            TextParams {
+                font_size: 20,
+                font: Some(&my_font),
+                color: WHITE,
+                ..Default::default()
+            },
         );
         draw_rectangle_lines(0.0, 0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 3.0, WHITE);
         if let GameState::Gameover = game_state {
-            draw_text(
+            draw_text_ex(
                 TEXT_LOSE_CONTEXT,
                 TEXT_LOSE_POS.x,
                 TEXT_LOSE_POS.y,
-                30.0,
+                TextParams {
+                    font_size: 30,
+                    font: Some(&my_font),
+                    color: WHITE,
+                    ..Default::default()
+                },
+            );
+            draw_rectangle(
+                BUTTON_RESTART_POS.x,
+                BUTTON_RESTART_POS.y,
+                BUTTON_RESTART_WIDTH,
+                BUTTON_RESTART_HEIGHT,
                 WHITE,
+            );
+            draw_text_ex(
+                "restart",
+                BUTTON_RESTART_POS.x + 5.0,
+                BUTTON_RESTART_POS.y + BUTTON_RESTART_HEIGHT / 2.0,
+                TextParams {
+                    font_size: 15,
+                    font: Some(&my_font),
+                    color: BLACK,
+                    ..Default::default()
+                },
             );
         };
 
