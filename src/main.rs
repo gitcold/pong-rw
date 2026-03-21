@@ -57,6 +57,11 @@ fn screen_to_world(screen_x: f32, screen_y: f32, scale: f32, offset: Vec2) -> (f
         world_y.clamp(0.0, LOGICAL_HEIGHT),
     )
 }
+fn mouse_pos(mx: f32, my: f32) -> (f32, f32) {
+    let wx = (mx * LOGICAL_WIDTH) / screen_width();
+    let wy = (my * LOGICAL_HEIGHT) / screen_height();
+    (wx,wy)
+}
 
 #[macroquad::main("pongrw")]
 async fn main() {
@@ -96,70 +101,49 @@ async fn main() {
         rand::gen_range(0.5, 1.0) * BALL_VEL_INIT * 1.3,
         rand::gen_range(0.5, 1.0) * BALL_VEL_INIT,
     );
-    /*
-        let mut camera = Camera2D::from_display_rect(
-            Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT),
-            Rect::new(0.0, 0.0, screen_width(), screen_height()),
-        );
-
-        set_window_resize_callback(|w, h| {
-            camera = Camera2D::from_display_rect(
-                Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT),
-                Rect::new(0.0, 0.0, w as f32, h as f32),
-            );
-        });
-    */
+    
     loop {
         let dt = get_frame_time();
         //let (scale, offset) = get_scale_and_offset();
-        //println!("{}", ball_vel);
-        /*let camera = Camera2D {
-            zoom: vec2(scale, scale),
+        //println!("{},{}", scale,offset);
+        
+        /*
+        let camera = Camera2D {
             target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
-            offset: vec2(offset.x - screen_width() / 2.0, offset.y - screen_height() / 2.0),
+            zoom: vec2(scale,scale),
+            //zoom: vec2((1.0/200.0)*scale, (1.0 / 150.0)*scale),
+            offset: offset - vec2(screen_width() / 2.0, screen_height() / 2.0) + vec2(LOGICAL_WIDTH / 2.0 * scale, LOGICAL_HEIGHT / 2.0 * scale),
+            //offset: offset + vec2(LOGICAL_WIDTH *scale/ 2.0, LOGICAL_HEIGHT *scale/ 2.0),
+            //offset:offset / vec2(screen_width(), screen_height()),
+            //offset:offset / vec2(LOGICAL_WIDTH, LOGICAL_HEIGHT),
             ..Default::default()
         };
         set_camera(&camera);
         */
-        /*let camera = Camera2D {
-            zoom: vec2(1., 1.),
-            target: vec2(0.0, 0.5),
-            //offset: vec2(offset.x - screen_width() / 2.0, offset.y - screen_height() / 2.0),
-            ..Default::default()
-        };
-        set_camera(&camera);*/
-
-        // 使用逻辑中心点作为target，保持物理屏幕居中
-        //let target = vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0);
-        //let target = vec2(0.0, 0.0);
-        /*let offset = vec2(
-            (screen_width() - LOGICAL_WIDTH * scale) / 2.0,
-            (screen_height() - LOGICAL_HEIGHT * scale) / 2.0,
-        );*/
-
-        // 修正后的相机设置
-        /*let camera = Camera2D {
-            target,
-            zoom: vec2(scale, scale),
-            offset,
-            ..Default::default()
-        };
-        set_camera(&camera);*/
+        
+        
+        //可以用
         let camera = Camera2D {
             target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
-            zoom: vec2(1.0 / 200.0, 1.0 / 150.0),
+            zoom: vec2(2.0 / LOGICAL_WIDTH, 2.0 / LOGICAL_HEIGHT),
             //offset: vec2(0.0, 0.0),
             ..Default::default()
         };
         set_camera(&camera);
+        
+        let (mx,my) = mouse_position();
+        //let (wx,wy) = screen_to_world(mx,my,scale,offset);
+        let (wx,wy) = mouse_pos(mx, my);
+        //println!("{:?}", (wx,wy));
+        
         if let GameState::Playing = game_state {
             if is_mouse_button_down(MouseButton::Left) {
-                if mouse_position().0 - (paddle_x + PADDLE_WIDTH / 2.0) >= PADDLE_VEC * dt {
+                if wx - (paddle_x + PADDLE_WIDTH / 2.0) >= PADDLE_VEC * dt {
                     paddle_x += PADDLE_VEC * dt;
-                } else if (paddle_x + PADDLE_WIDTH / 2.0) - mouse_position().0 >= PADDLE_VEC * dt {
+                } else if (paddle_x + PADDLE_WIDTH / 2.0) - wx >= PADDLE_VEC * dt {
                     paddle_x -= PADDLE_VEC * dt;
                 } else {
-                    paddle_x = mouse_position().0 - PADDLE_WIDTH / 2.0;
+                    paddle_x = wx - PADDLE_WIDTH / 2.0;
                 }
             } else {
                 if is_key_down(KeyCode::Left) {
@@ -221,10 +205,10 @@ async fn main() {
         }
         if let GameState::Gameover = game_state {
             if is_key_down(KeyCode::R)
-                || mouse_position().0 >= BUTTON_RESTART_POS.x
-                    && mouse_position().0 <= BUTTON_RESTART_POS.x + BUTTON_RESTART_WIDTH
-                    && mouse_position().1 >= BUTTON_RESTART_POS.y
-                    && mouse_position().1 <= BUTTON_RESTART_POS.y + BUTTON_RESTART_HEIGHT
+                || wx >= BUTTON_RESTART_POS.x
+                    && wx <= BUTTON_RESTART_POS.x + BUTTON_RESTART_WIDTH
+                    && wy >= BUTTON_RESTART_POS.y
+                    && wy <= BUTTON_RESTART_POS.y + BUTTON_RESTART_HEIGHT
                     && is_mouse_button_pressed(MouseButton::Left)
             {
                 paddle_x = LOGICAL_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
@@ -295,8 +279,12 @@ async fn main() {
                 },
             );
         };
-        //set_default_camera();
-
+        if is_mouse_button_down(MouseButton::Left) {
+        	draw_circle(wx, wy, 5.0, GREEN.with_alpha(0.5));
+        }else {
+        	draw_circle(wx, wy, 5.0, YELLOW.with_alpha(0.5));
+        }
+        
         next_frame().await;
     }
 }
