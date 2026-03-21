@@ -3,6 +3,9 @@ use macroquad::prelude::*;
 use wasm_bindgen::prelude::*;
 
 const MUSIC_BYTES: &[u8] = include_bytes!("../assets/bgm.ogg");
+const VOICE_PONG1_BYTES: &[u8] = include_bytes!("../assets/pong1.ogg");
+const VOICE_PONG2_BYTES: &[u8] = include_bytes!("../assets/pong2.ogg");
+const VOICE_PONG3_BYTES: &[u8] = include_bytes!("../assets/pong3.ogg");
 const FONT_BYTES: &[u8] = include_bytes!("../assets/nova-round.ttf");
 
 const LOGICAL_WIDTH: f32 = 400.0;
@@ -61,6 +64,19 @@ async fn main() {
 
     let my_font = load_ttf_font_from_bytes(FONT_BYTES).expect("none font:无法加载字体");
     let bgm = load_sound_from_bytes(MUSIC_BYTES).await.unwrap();
+    let voice_pong1 = load_sound_from_bytes(VOICE_PONG1_BYTES).await.unwrap();
+    let voice_pong2 = load_sound_from_bytes(VOICE_PONG2_BYTES).await.unwrap();
+    let voice_pong3 = load_sound_from_bytes(VOICE_PONG3_BYTES).await.unwrap();
+    let voice_pong = || {
+        let s = rand::gen_range(1, 4);
+        if s == 1 {
+            play_sound_once(&voice_pong1);
+        } else if s == 2 {
+            play_sound_once(&voice_pong2);
+        } else if s == 3 {
+            play_sound_once(&voice_pong3);
+        }
+    };
     play_sound(
         &bgm,
         PlaySoundParams {
@@ -77,8 +93,8 @@ async fn main() {
         BALL_SIZE * 2.0,
     );
     let mut ball_vel = vec2(
-        rand::gen_range(0.5,1.0) *BALL_VEL_INIT* 1.3,
-        rand::gen_range(0.5, 1.0)*BALL_VEL_INIT,
+        rand::gen_range(0.5, 1.0) * BALL_VEL_INIT * 1.3,
+        rand::gen_range(0.5, 1.0) * BALL_VEL_INIT,
     );
     /*
         let mut camera = Camera2D::from_display_rect(
@@ -165,15 +181,18 @@ async fn main() {
             if ball_pos.x < 0.0 {
                 ball_vel.x = -ball_vel.x;
                 ball_pos.x = 0.0;
+                voice_pong();
             }
             if ball_pos.x > LOGICAL_WIDTH {
                 ball_vel.x = -ball_vel.x;
                 ball_pos.x = LOGICAL_WIDTH;
+                voice_pong();
             }
 
             if ball_pos.y < 0.0 {
                 ball_vel.y = -ball_vel.y;
                 ball_pos.y = 0.0;
+                voice_pong();
             }
             if ball_pos.y > LOGICAL_HEIGHT {
                 game_state = GameState::Gameover;
@@ -182,9 +201,10 @@ async fn main() {
                 && ball_pos.x < paddle_x + PADDLE_WIDTH
                 && ball_pos.y > PADDLE_Y - BALL_SIZE / 2.0
             {
-                ball_vel.y = - (ball_vel.y.abs());
+                ball_vel.y = -(ball_vel.y.abs());
                 ball_pos.y = PADDLE_Y - BALL_SIZE / 2.0;
                 point += 1;
+                voice_pong();
                 if ball_vel.x.abs() < BALL_VEL_MAX {
                     ball_vel.x *= rand::gen_range(1.05, 1.3);
                 }
@@ -215,8 +235,8 @@ async fn main() {
                     BALL_SIZE * 2.0,
                 );
                 ball_vel = vec2(
-        rand::gen_range(0.5,1.0) *BALL_VEL_INIT* 1.3,
-        rand::gen_range(0.5, 1.0)*BALL_VEL_INIT,
+                    rand::gen_range(0.5, 1.0) * BALL_VEL_INIT * 1.3,
+                    rand::gen_range(0.5, 1.0) * BALL_VEL_INIT,
                 );
             }
         }
