@@ -1,11 +1,16 @@
 use macroquad::prelude::*;
 use wasm_bindgen::prelude::*;
-//use macroquad::audio::{load_sound_from_bytes,play_sound,PlaySoundParams,load_sound,Sound};
+//use firewheel::{GraphBuilder};
+//use firewheel::*;
+use macroquad::audio::*;
+/*{load_sound_from_bytes,play_sound,PlaySoundParams,load_sound,Sound};*/
 //mod music;
 //use music::MusicPlayer;
 //use anyhow::Result;
 
 //const MUSIC_BYTES: &[u8] = include_bytes!("../assets/bgm.ogg");
+//const MUSIC_BYTES: &[u8] = include_bytes!("../assets/Instrument.wav");
+const MUSIC_BYTES: &[u8] = include_bytes!("../assets/output.wav");
 const FONT_BYTES: &[u8] = include_bytes!("../assets/nova-round.ttf");
 
 const LOGICAL_WIDTH: f32 = 400.0;
@@ -66,14 +71,21 @@ async fn main() {
 
     //let mut music_player = MusicPlayer::new(MUSIC_BYTES).await?;
     //music_player.play()?;
-    //let bg_music = load_sound_from_bytes(MUSIC_BYTES).await;
+    let bgm = load_sound_from_bytes(MUSIC_BYTES).await.unwrap();
     //let bg_music = load_sound("../assets/bg_music.ogg").await;
-    /*let params = PlaySoundParams {
+    let params = PlaySoundParams {
             looped: true,
             volume: 100.0,
         };
-    */
-    //play_sound(&bg_music,params);
+    play_sound(&bgm,params);
+    
+    //let mut engine = FirewheelConfig::new()?;
+	//let mut graph = GraphBuilder::new();
+	//let bgm_source = graph.add_source(MUSIC_BYTES)?;
+	//let node = graph.add_playback_node(bgm_source)?.set_looping(true);
+
+    
+    
     let mut paddle_x = LOGICAL_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
     let mut game_state = GameState::Playing;
     let mut point = 0;
@@ -100,8 +112,8 @@ async fn main() {
     */
     loop {
         let dt = get_frame_time();
-        let (scale, offset) = get_scale_and_offset();
-        println!("{}",scale);
+        //let (scale, offset) = get_scale_and_offset();
+        //println!("{}",scale);
         /*let camera = Camera2D {
             zoom: vec2(scale, scale),
             target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
@@ -121,10 +133,10 @@ async fn main() {
         // 使用逻辑中心点作为target，保持物理屏幕居中
 let target = vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0);
 //let target = vec2(0.0, 0.0);
-let offset = vec2(
+/*let offset = vec2(
     (screen_width() - LOGICAL_WIDTH * scale) / 2.0,
     (screen_height() - LOGICAL_HEIGHT * scale) / 2.0,
-);
+);*/
 
 // 修正后的相机设置
 /*let camera = Camera2D {
