@@ -1,17 +1,8 @@
+use macroquad::audio::*;
 use macroquad::prelude::*;
 use wasm_bindgen::prelude::*;
-//use firewheel::{GraphBuilder};
-//use firewheel::*;
-use macroquad::audio::*;
-/*{load_sound_from_bytes,play_sound,PlaySoundParams,load_sound,Sound};*/
-//mod music;
-//use music::MusicPlayer;
-//use anyhow::Result;
 
 const MUSIC_BYTES: &[u8] = include_bytes!("../assets/bgm.ogg");
-//const MUSIC_BYTES: &[u8] = include_bytes!("../assets/Instrument.wav");
-//const MUSIC_BYTES: &[u8] = include_bytes!("../assets/output.wav");
-//const MUSIC_BYTES: &[u8] = include_bytes!("../assets/output.ogg");
 const FONT_BYTES: &[u8] = include_bytes!("../assets/nova-round.ttf");
 
 const LOGICAL_WIDTH: f32 = 400.0;
@@ -23,8 +14,8 @@ const PADDLE_Y: f32 = 260.0;
 const PADDLE_VEC: f32 = 240.0;
 
 const BALL_SIZE: f32 = 10.0;
-const BALL_VEL_INIT: f32 = 130.0;
-const BALL_VEL_MAX: f32 = 230.0;
+const BALL_VEL_INIT: f32 = 150.0;
+const BALL_VEL_MAX: f32 = 400.0;
 
 const POINT_POS: Vec2 = Vec2::new(LOGICAL_WIDTH / 2.0 - 40.0, 20.0);
 const TEXT_LOSE_POS: Vec2 = Vec2::new(LOGICAL_WIDTH / 2.0 - 60.0, LOGICAL_HEIGHT / 2.0);
@@ -69,23 +60,15 @@ async fn main() {
     request_new_screen_size(LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
     let my_font = load_ttf_font_from_bytes(FONT_BYTES).expect("none font:无法加载字体");
-
-    //let mut music_player = MusicPlayer::new(MUSIC_BYTES).await?;
-    //music_player.play()?;
     let bgm = load_sound_from_bytes(MUSIC_BYTES).await.unwrap();
-    //let bg_music = load_sound("../assets/bg_music.ogg").await;
-    play_sound(&bgm,PlaySoundParams {
+    play_sound(
+        &bgm,
+        PlaySoundParams {
             looped: true,
             volume: 1.0,
-        });
-    
-    //let mut engine = FirewheelConfig::new()?;
-	//let mut graph = GraphBuilder::new();
-	//let bgm_source = graph.add_source(MUSIC_BYTES)?;
-	//let node = graph.add_playback_node(bgm_source)?.set_looping(true);
+        },
+    );
 
-    
-    
     let mut paddle_x = LOGICAL_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
     let mut game_state = GameState::Playing;
     let mut point = 0;
@@ -95,7 +78,7 @@ async fn main() {
     );
     let mut ball_vel = vec2(
         rand::gen_range(-BALL_VEL_INIT, BALL_VEL_INIT) * 2.0,
-        rand::gen_range(0.0, BALL_VEL_INIT),
+        rand::gen_range(BALL_VEL_INIT * 0.5, BALL_VEL_INIT),
     );
     /*
         let mut camera = Camera2D::from_display_rect(
@@ -113,7 +96,7 @@ async fn main() {
     loop {
         let dt = get_frame_time();
         //let (scale, offset) = get_scale_and_offset();
-        //println!("{}",scale);
+        println!("{}", ball_vel);
         /*let camera = Camera2D {
             zoom: vec2(scale, scale),
             target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
@@ -129,30 +112,30 @@ async fn main() {
             ..Default::default()
         };
         set_camera(&camera);*/
-        
-        // 使用逻辑中心点作为target，保持物理屏幕居中
-let target = vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0);
-//let target = vec2(0.0, 0.0);
-/*let offset = vec2(
-    (screen_width() - LOGICAL_WIDTH * scale) / 2.0,
-    (screen_height() - LOGICAL_HEIGHT * scale) / 2.0,
-);*/
 
-// 修正后的相机设置
-/*let camera = Camera2D {
-    target,
-    zoom: vec2(scale, scale),
-    offset,
-    ..Default::default()
-};
-set_camera(&camera);*/
-let camera = Camera2D {
-    target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
-    zoom: vec2(1.0/200.0, 1.0/150.0),
-    //offset: vec2(0.0, 0.0),
-    ..Default::default()
-};
-set_camera(&camera);
+        // 使用逻辑中心点作为target，保持物理屏幕居中
+        //let target = vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0);
+        //let target = vec2(0.0, 0.0);
+        /*let offset = vec2(
+            (screen_width() - LOGICAL_WIDTH * scale) / 2.0,
+            (screen_height() - LOGICAL_HEIGHT * scale) / 2.0,
+        );*/
+
+        // 修正后的相机设置
+        /*let camera = Camera2D {
+            target,
+            zoom: vec2(scale, scale),
+            offset,
+            ..Default::default()
+        };
+        set_camera(&camera);*/
+        let camera = Camera2D {
+            target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
+            zoom: vec2(1.0 / 200.0, 1.0 / 150.0),
+            //offset: vec2(0.0, 0.0),
+            ..Default::default()
+        };
+        set_camera(&camera);
         if let GameState::Playing = game_state {
             if is_mouse_button_down(MouseButton::Left) {
                 if mouse_position().0 - (paddle_x + PADDLE_WIDTH / 2.0) >= PADDLE_VEC * dt {
@@ -162,15 +145,18 @@ set_camera(&camera);
                 } else {
                     paddle_x = mouse_position().0 - PADDLE_WIDTH / 2.0;
                 }
-            } else if is_key_down(KeyCode::Left) {
-                paddle_x -= PADDLE_VEC * dt;
-                if paddle_x < 0.0 - PADDLE_WIDTH / 2.0 {
-                    paddle_x = 0.0 - PADDLE_WIDTH / 2.0;
+            } else {
+                if is_key_down(KeyCode::Left) {
+                    paddle_x -= PADDLE_VEC * dt;
+                    if paddle_x < 0.0 - PADDLE_WIDTH / 2.0 {
+                        paddle_x = 0.0 - PADDLE_WIDTH / 2.0;
+                    }
                 }
-            } else if is_key_down(KeyCode::Right) {
-                paddle_x += PADDLE_VEC * dt;
-                if paddle_x > LOGICAL_WIDTH - PADDLE_WIDTH / 2.0 {
-                    paddle_x = LOGICAL_WIDTH - PADDLE_WIDTH / 2.0;
+                if is_key_down(KeyCode::Right) {
+                    paddle_x += PADDLE_VEC * dt;
+                    if paddle_x > LOGICAL_WIDTH - PADDLE_WIDTH / 2.0 {
+                        paddle_x = LOGICAL_WIDTH - PADDLE_WIDTH / 2.0;
+                    }
                 }
             }
 
@@ -192,24 +178,24 @@ set_camera(&camera);
             if ball_pos.y > LOGICAL_HEIGHT {
                 game_state = GameState::Gameover;
             }
-            if ball_pos.x >= paddle_x
-                && ball_pos.x <= paddle_x + PADDLE_WIDTH
-                && ball_pos.y >= PADDLE_Y - BALL_SIZE / 2.0
+            if ball_pos.x > paddle_x
+                && ball_pos.x < paddle_x + PADDLE_WIDTH
+                && ball_pos.y > PADDLE_Y - BALL_SIZE / 2.0
             {
-                ball_vel.y = -ball_vel.y;
+                ball_vel.y = - (ball_vel.y.abs());
                 ball_pos.y = PADDLE_Y - BALL_SIZE / 2.0;
                 point += 1;
-                if ball_vel.x < BALL_VEL_MAX {
+                if ball_vel.x.abs() < BALL_VEL_MAX {
                     ball_vel.x *= rand::gen_range(1.05, 1.3);
-                    if ball_vel.x > BALL_VEL_MAX {
-                        ball_vel.x = BALL_VEL_MAX * rand::gen_range(1.01, 1.03);
-                    }
                 }
-                if ball_vel.y < BALL_VEL_MAX {
-                    ball_vel.y *= rand::gen_range(1.05, 1.1);
-                    if ball_vel.y > BALL_VEL_MAX {
-                        ball_vel.y = BALL_VEL_MAX * rand::gen_range(1.01, 1.03);
-                    }
+                if ball_vel.x.abs() > BALL_VEL_MAX {
+                    ball_vel.x = BALL_VEL_MAX * rand::gen_range(0.97, 1.03) * ball_vel.x.signum();
+                }
+                if ball_vel.y.abs() < BALL_VEL_MAX {
+                    ball_vel.y *= rand::gen_range(1.05, 1.15);
+                }
+                if ball_vel.y.abs() > BALL_VEL_MAX {
+                    ball_vel.y = BALL_VEL_MAX * rand::gen_range(0.97, 1.03) * ball_vel.y.signum();
                 }
             }
         }
@@ -230,7 +216,7 @@ set_camera(&camera);
                 );
                 ball_vel = vec2(
                     rand::gen_range(-BALL_VEL_INIT, BALL_VEL_INIT) * 2.0,
-                    rand::gen_range(0.0, BALL_VEL_INIT),
+                    rand::gen_range(BALL_VEL_INIT * 0.5, BALL_VEL_INIT),
                 );
             }
         }
