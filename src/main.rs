@@ -11,7 +11,7 @@ const LOGICAL_HEIGHT: f32 = 300.0;
 const PADDLE_WIDTH: f32 = 60.0;
 const PADDLE_HEIGHT: f32 = 10.0;
 const PADDLE_Y: f32 = 260.0;
-const PADDLE_VEC: f32 = 240.0;
+const PADDLE_VEC: f32 = 260.0;
 
 const BALL_SIZE: f32 = 10.0;
 const BALL_VEL_INIT: f32 = 150.0;
@@ -77,8 +77,8 @@ async fn main() {
         BALL_SIZE * 2.0,
     );
     let mut ball_vel = vec2(
-        rand::gen_range(-BALL_VEL_INIT, BALL_VEL_INIT) * 2.0,
-        rand::gen_range(BALL_VEL_INIT * 0.5, BALL_VEL_INIT),
+        rand::gen_range(0.5,1.0) *BALL_VEL_INIT* 1.3,
+        rand::gen_range(0.5, 1.0)*BALL_VEL_INIT,
     );
     /*
         let mut camera = Camera2D::from_display_rect(
@@ -96,7 +96,7 @@ async fn main() {
     loop {
         let dt = get_frame_time();
         //let (scale, offset) = get_scale_and_offset();
-        println!("{}", ball_vel);
+        //println!("{}", ball_vel);
         /*let camera = Camera2D {
             zoom: vec2(scale, scale),
             target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
@@ -215,8 +215,8 @@ async fn main() {
                     BALL_SIZE * 2.0,
                 );
                 ball_vel = vec2(
-                    rand::gen_range(-BALL_VEL_INIT, BALL_VEL_INIT) * 2.0,
-                    rand::gen_range(BALL_VEL_INIT * 0.5, BALL_VEL_INIT),
+        rand::gen_range(0.5,1.0) *BALL_VEL_INIT* 1.3,
+        rand::gen_range(0.5, 1.0)*BALL_VEL_INIT,
                 );
             }
         }
@@ -266,9 +266,9 @@ async fn main() {
             draw_text_ex(
                 "restart",
                 BUTTON_RESTART_POS.x + 5.0,
-                BUTTON_RESTART_POS.y + BUTTON_RESTART_HEIGHT / 2.0,
+                BUTTON_RESTART_POS.y + BUTTON_RESTART_HEIGHT / 2.0 + 6.0,
                 TextParams {
-                    font_size: 15,
+                    font_size: 22,
                     font: Some(&my_font),
                     color: BLACK,
                     ..Default::default()
