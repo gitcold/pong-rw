@@ -8,9 +8,10 @@ use macroquad::audio::*;
 //use music::MusicPlayer;
 //use anyhow::Result;
 
-//const MUSIC_BYTES: &[u8] = include_bytes!("../assets/bgm.ogg");
+const MUSIC_BYTES: &[u8] = include_bytes!("../assets/bgm.ogg");
 //const MUSIC_BYTES: &[u8] = include_bytes!("../assets/Instrument.wav");
-const MUSIC_BYTES: &[u8] = include_bytes!("../assets/output.wav");
+//const MUSIC_BYTES: &[u8] = include_bytes!("../assets/output.wav");
+//const MUSIC_BYTES: &[u8] = include_bytes!("../assets/output.ogg");
 const FONT_BYTES: &[u8] = include_bytes!("../assets/nova-round.ttf");
 
 const LOGICAL_WIDTH: f32 = 400.0;
@@ -73,11 +74,10 @@ async fn main() {
     //music_player.play()?;
     let bgm = load_sound_from_bytes(MUSIC_BYTES).await.unwrap();
     //let bg_music = load_sound("../assets/bg_music.ogg").await;
-    let params = PlaySoundParams {
+    play_sound(&bgm,PlaySoundParams {
             looped: true,
-            volume: 100.0,
-        };
-    play_sound(&bgm,params);
+            volume: 1.0,
+        });
     
     //let mut engine = FirewheelConfig::new()?;
 	//let mut graph = GraphBuilder::new();
