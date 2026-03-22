@@ -1,13 +1,13 @@
 [package]
 name = "pongrw"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
+build = "src/build.rs"
 
 [profile.release]
 lto = "thin"
 
 [dependencies]
-#firewheel = "0.10.0"
 macroquad = {version="0.4.14",features=["audio"]}
 wasm-bindgen = "0.2.114"
 
@@ -16,3 +16,6 @@ wasm-bindgen = "0.2.114"
 audio_sample_rate = 44100
 # 位深设为16位
 audio_bit_depth = 32
+
+[build-dependencies]
+image = "0.24"
