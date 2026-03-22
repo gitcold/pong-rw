@@ -5,14 +5,12 @@ use wasm_bindgen::prelude::*;
 
 mod icon_data;
 use icon_data::ICON;
-//include!(concat!(env!("OUT_DIR"),"/icon_data.rs"));
 
 const MUSIC_BYTES: &[u8] = include_bytes!("../assets/bgm.ogg");
 const VOICE_PONG1_BYTES: &[u8] = include_bytes!("../assets/pong1.ogg");
 const VOICE_PONG2_BYTES: &[u8] = include_bytes!("../assets/pong2.ogg");
 const VOICE_PONG3_BYTES: &[u8] = include_bytes!("../assets/pong3.ogg");
 const FONT_BYTES: &[u8] = include_bytes!("../assets/nova-round.ttf");
-const ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
 const LOGICAL_WIDTH: f32 = 400.0;
 const LOGICAL_HEIGHT: f32 = 300.0;
@@ -43,40 +41,42 @@ enum GameState {
 }
 
 // 将鼠标的屏幕坐标转换为逻辑坐标
-fn mouse_pos(mx: f32, my: f32) -> (f32, f32) {
-    let wx = (mx * LOGICAL_WIDTH) / screen_width();
-    let wy = (my * LOGICAL_HEIGHT) / screen_height();
-    (wx,wy)
+fn zoom_mouse(state:i32, mx: f32, my: f32) -> (f32, f32) {
+    let mut wx=0.0;
+    let mut wy=0.0;
+    if state == 1{
+		wx = (mx * LOGICAL_WIDTH) / screen_width();
+  		wy = (my * LOGICAL_HEIGHT) / screen_height();
+   	}else if state == 2{
+		
+	}
+	(wx,wy)
 }
-
+fn get_zoom(state: i32)->Vec2{
+	let mut zoom=Vec2::new(0.0,0.0);
+	if state == 1{
+		zoom = vec2(2.0 / LOGICAL_WIDTH, 2.0 / LOGICAL_HEIGHT);
+	}else if state == 2{
+		let psx = LOGICAL_WIDTH/screen_width();
+        let psy = LOGICAL_HEIGHT/screen_height();
+        let mut sx=1.0;
+        let mut sy=1.0;
+        if psx > psy{
+        	sy = psy/psx;
+        }
+        if psy > psx{
+        	sx = psx/psy;
+        }
+        zoom= vec2(2.0*sx/(LOGICAL_WIDTH),2.0*sy/(LOGICAL_HEIGHT));
+	}
+	zoom
+}
 fn window_conf() -> Conf {
-	let mut small = [0u8;1024];
-	for i in 0..256 {
-		small[i*4] =255;
-		small[i*4+1] =0;
-		small[i*4+2] =0;
-		small[i*4+3] =255;
-	}
-	let mut medium = [0u8;4096];
-	for i in 0..256 {
-		medium[i*4] =255;
-		medium[i*4+1] =0;
-		medium[i*4+2] =0;
-		medium[i*4+3] =255;
-	}
-	let mut big = [0u8;16384];
-	for i in 0..256 {
-		big[i*4] =255;
-		big[i*4+1] =0;
-		big[i*4+2] =0;
-		big[i*4+3] =255;
-	}
 	Conf {
 		window_title:"Pong-rust&wasm".to_string(),
 		window_width: LOGICAL_WIDTH as i32,
 		window_height: LOGICAL_HEIGHT as i32,
 		high_dpi:true,
-		//icon:Some(Icon{small,medium,big}),
 		icon:ICON,
 		..Default::default()
 	}
@@ -107,7 +107,9 @@ async fn main() {
             volume: 1.0,
         },
     );
-
+    
+    let mut zoom_state = 1;
+    
     let mut paddle_x = LOGICAL_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
     let mut game_state = GameState::Playing;
     let mut point = 0;
@@ -123,15 +125,17 @@ async fn main() {
     loop {
         let dt = get_frame_time();
         
-        let camera = Camera2D {
+        let zoom=get_zoom(zoom_state);
+		let camera = Camera2D {
             target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
-            zoom: vec2(2.0 / LOGICAL_WIDTH, 2.0 / LOGICAL_HEIGHT),
+        	zoom,
             ..Default::default()
         };
         set_camera(&camera);
         
+        
         let (mx,my) = mouse_position();
-        let (wx,wy) = mouse_pos(mx, my);
+        let (wx,wy) = zoom_mouse(zoom_state, mx, my);
         
         if let GameState::Playing = game_state {
             if is_mouse_button_down(MouseButton::Left) {
@@ -220,6 +224,12 @@ async fn main() {
                     rand::gen_range(0.5, 1.0) * BALL_VEL_INIT,
                 );
             }
+        }
+        if is_key_pressed(KeyCode::Key1){
+        	zoom_state = 1;
+        }
+        if is_key_pressed(KeyCode::Key2){
+        	zoom_state = 2;
         }
 
         clear_background(BLACK);
