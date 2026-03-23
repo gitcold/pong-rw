@@ -41,22 +41,20 @@ enum GameState {
 }
 
 // 将鼠标的屏幕坐标转换为逻辑坐标
-fn zoom_mouse(state:i32, mx: f32, my: f32) -> (f32, f32) {
-    let mut wx=0.0;
+fn get_zoom(zoom_mode: i32)->(Vec2,f32,f32){
+	let (mx,my) = mouse_position();
+	let mut wx=0.0;
     let mut wy=0.0;
-    if state == 1{
+	let mut zoom=Vec2::new(0.0,0.0);
+	let tx = screen_width();
+	let ty = screen_height();
+	let lx = LOGICAL_WIDTH;
+	let ly = LOGICAL_HEIGHT;
+	if zoom_mode == 1{
+		zoom = vec2(2.0 / LOGICAL_WIDTH, 2.0 / LOGICAL_HEIGHT);
 		wx = (mx * LOGICAL_WIDTH) / screen_width();
   		wy = (my * LOGICAL_HEIGHT) / screen_height();
-   	}else if state == 2{
-		
-	}
-	(wx,wy)
-}
-fn get_zoom(state: i32)->Vec2{
-	let mut zoom=Vec2::new(0.0,0.0);
-	if state == 1{
-		zoom = vec2(2.0 / LOGICAL_WIDTH, 2.0 / LOGICAL_HEIGHT);
-	}else if state == 2{
+	}else if zoom_mode == 2{
 		let psx = LOGICAL_WIDTH/screen_width();
         let psy = LOGICAL_HEIGHT/screen_height();
         let mut sx=1.0;
@@ -68,8 +66,10 @@ fn get_zoom(state: i32)->Vec2{
         	sx = psx/psy;
         }
         zoom= vec2(2.0*sx/(LOGICAL_WIDTH),2.0*sy/(LOGICAL_HEIGHT));
+        wx=(mx-(tx*(1.0-sx)/2.0))*lx/(tx*sx);
+        wy=(my-(ty*(1.0-sy)/2.0))*ly/(ty*sy);
 	}
-	zoom
+	(zoom,wx,wy)
 }
 fn window_conf() -> Conf {
 	Conf {
@@ -108,7 +108,7 @@ async fn main() {
         },
     );
     
-    let mut zoom_state = 1;
+    let mut zoom_mode = 1;
     let mut fps_smooth = 59.0;
     
     let mut paddle_x = LOGICAL_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
@@ -119,15 +119,15 @@ async fn main() {
         BALL_SIZE * 2.0,
     );
     let mut ball_vel = vec2(
-        rand::gen_range(0.5, 1.0) * BALL_VEL_INIT * 1.3,
-        rand::gen_range(0.5, 1.0) * BALL_VEL_INIT,
+        rand::gen_range(0.45, 0.65) * BALL_VEL_INIT * 1.1,
+        rand::gen_range(0.5, 0.75) * BALL_VEL_INIT,
     );
     
     loop {
         let dt = get_frame_time();
-        //println!("{}",1.0/dt);
+        println!("{}",ball_vel);
         
-        let zoom=get_zoom(zoom_state);
+        let (zoom,wx,wy)=get_zoom(zoom_mode);
 		let camera = Camera2D {
             target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
         	zoom,
@@ -136,8 +136,8 @@ async fn main() {
         set_camera(&camera);
         
         
-        let (mx,my) = mouse_position();
-        let (wx,wy) = zoom_mouse(zoom_state, mx, my);
+        //let (mx,my) = mouse_position();
+        //let (wx,wy) = zoom_mouse(zoom_state, mx, my);
         
         if let GameState::Playing = game_state {
             if is_mouse_button_down(MouseButton::Left) {
@@ -222,16 +222,16 @@ async fn main() {
                     BALL_SIZE * 2.0,
                 );
                 ball_vel = vec2(
-                    rand::gen_range(0.5, 1.0) * BALL_VEL_INIT * 1.3,
-                    rand::gen_range(0.5, 1.0) * BALL_VEL_INIT,
+                    rand::gen_range(0.45, 0.65) * BALL_VEL_INIT * 1.1,
+        			rand::gen_range(0.5, 0.75) * BALL_VEL_INIT,
                 );
             }
         }
         if is_key_pressed(KeyCode::Key1){
-        	zoom_state = 1;
+        	zoom_mode = 1;
         }
         if is_key_pressed(KeyCode::Key2){
-        	zoom_state = 2;
+        	zoom_mode = 2;
         }
 
         clear_background(BLACK);
@@ -243,6 +243,28 @@ async fn main() {
             BALL_SIZE / 2.0,
             WHITE,
         );
+        draw_text_ex(
+                "press left, right, or mouse_left to move",
+                2.0,
+                35.0,
+                TextParams {
+                    font_size: 15,
+                    font: Some(&my_font),
+                    color: GRAY,
+                    ..Default::default()
+                },
+            );
+        draw_text_ex(
+                "more key: 1,2,R",
+                2.0,
+                35.0+18.0,
+                TextParams {
+                    font_size: 15,
+                    font: Some(&my_font),
+                    color: GRAY,
+                    ..Default::default()
+                },
+            );
         draw_text_ex(
             &format!("Point: {}", point),
             POINT_POS.x,
@@ -295,6 +317,17 @@ async fn main() {
                     font_size: 22,
                     font: Some(&my_font),
                     color: BLACK,
+                    ..Default::default()
+                },
+            );
+            draw_text_ex(
+                "Can you reach 20 points?",
+                BUTTON_RESTART_POS.x - 60.0,
+                BUTTON_RESTART_POS.y + BUTTON_RESTART_HEIGHT + 25.0,
+                TextParams {
+                    font_size: 18,
+                    font: Some(&my_font),
+                    color: WHITE,
                     ..Default::default()
                 },
             );
