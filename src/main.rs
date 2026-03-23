@@ -109,6 +109,7 @@ async fn main() {
     );
     
     let mut zoom_state = 1;
+    let mut fps_smooth = 59.0;
     
     let mut paddle_x = LOGICAL_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
     let mut game_state = GameState::Playing;
@@ -124,6 +125,7 @@ async fn main() {
     
     loop {
         let dt = get_frame_time();
+        //println!("{}",1.0/dt);
         
         let zoom=get_zoom(zoom_state);
 		let camera = Camera2D {
@@ -168,9 +170,9 @@ async fn main() {
                 ball_pos.x = 0.0;
                 voice_pong();
             }
-            if ball_pos.x > LOGICAL_WIDTH {
+            if ball_pos.x > LOGICAL_WIDTH - BALL_SIZE {
                 ball_vel.x = -ball_vel.x;
-                ball_pos.x = LOGICAL_WIDTH;
+                ball_pos.x = LOGICAL_WIDTH- BALL_SIZE;
                 voice_pong();
             }
 
@@ -179,7 +181,7 @@ async fn main() {
                 ball_pos.y = 0.0;
                 voice_pong();
             }
-            if ball_pos.y > LOGICAL_HEIGHT {
+            if ball_pos.y > LOGICAL_HEIGHT +BALL_SIZE*2.0{
                 game_state = GameState::Gameover;
             }
             if ball_pos.x > paddle_x
@@ -245,6 +247,19 @@ async fn main() {
             &format!("Point: {}", point),
             POINT_POS.x,
             POINT_POS.y,
+            TextParams {
+                font_size: 20,
+                font: Some(&my_font),
+                color: WHITE,
+                ..Default::default()
+            },
+        );
+        let current_fps = get_fps() as f32;
+        fps_smooth = fps_smooth*0.98+current_fps*0.02;
+        draw_text_ex(
+            &format!("FPS: {}", fps_smooth as i32),
+            LOGICAL_WIDTH-80.0,
+            20.0,
             TextParams {
                 font_size: 20,
                 font: Some(&my_font),
