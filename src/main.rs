@@ -108,7 +108,7 @@ async fn main() {
         },
     );
 
-    let mut zoom_mode = 1;
+    let mut zoom_mode = 2;
     let mut fps_smooth = 59.0;
     let mut debug_never_die = false;
     let mut debug_cancle_ball_vel_max = false;
@@ -128,7 +128,10 @@ async fn main() {
     );
 
     loop {
-        let dt = get_frame_time();
+        let mut dt = get_frame_time();
+        if 1.0/dt < 30.0 {
+        	dt = 1.0/30.0
+        }
         //println!("{}",debug_never_die);
 
         let (zoom, wx, wy) = get_zoom(zoom_mode);
@@ -190,7 +193,7 @@ async fn main() {
                         game_state = GameState::Gameover;
                     }
                 }
-                if ball_pos.x > paddle_x
+                if ball_pos.x > paddle_x - BALL_SIZE
                     && ball_pos.x < paddle_x + PADDLE_WIDTH
                     && ball_pos.y > PADDLE_Y - BALL_SIZE / 2.0
                 {
