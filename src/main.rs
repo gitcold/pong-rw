@@ -35,6 +35,7 @@ const BUTTON_RESTART_POS: Vec2 = Vec2::new(
 const BUTTON_RESTART_WIDTH: f32 = 80.0;
 const BUTTON_RESTART_HEIGHT: f32 = 30.0;
 
+#[derive(PartialEq)]
 enum GameState {
     Playing,
     Gameover,
@@ -129,8 +130,8 @@ async fn main() {
 
     loop {
         let mut dt = get_frame_time();
-        if 1.0/dt < 30.0 {
-        	dt = 1.0/30.0
+        if 1.0 / dt < 30.0 {
+            dt = 1.0 / 30.0
         }
         //println!("{}",debug_never_die);
 
@@ -169,30 +170,6 @@ async fn main() {
 
                 ball_pos += ball_vel * dt;
 
-                if ball_pos.x < 0.0 {
-                    ball_vel.x = -ball_vel.x;
-                    ball_pos.x = 0.0;
-                    voice_pong();
-                }
-                if ball_pos.x > LOGICAL_WIDTH - BALL_SIZE {
-                    ball_vel.x = -ball_vel.x;
-                    ball_pos.x = LOGICAL_WIDTH - BALL_SIZE;
-                    voice_pong();
-                }
-
-                if ball_pos.y < 0.0 {
-                    ball_vel.y = -ball_vel.y;
-                    ball_pos.y = 0.0;
-                    voice_pong();
-                }
-                if ball_pos.y > LOGICAL_HEIGHT + BALL_SIZE * 2.0 {
-                    if debug_never_die {
-                        ball_vel.y = -ball_vel.y;
-                        ball_pos.y = LOGICAL_HEIGHT + BALL_SIZE;
-                    } else {
-                        game_state = GameState::Gameover;
-                    }
-                }
                 if ball_pos.x > paddle_x - BALL_SIZE
                     && ball_pos.x < paddle_x + PADDLE_WIDTH
                     && ball_pos.y > PADDLE_Y - BALL_SIZE / 2.0
@@ -218,22 +195,52 @@ async fn main() {
                                 BALL_VEL_MAX * rand::gen_range(0.97, 1.03) * ball_vel.y.signum();
                         }
                     } else {
-                        ball_vel.x *= rand::gen_range(1.05, 1.3);
-                        ball_vel.y *= rand::gen_range(1.05, 1.15);
+                        if ball_vel.x <= BALL_VEL_MAX {
+                            ball_vel.x *= rand::gen_range(1.05, 1.3);
+                        }
+                        if ball_vel.y <= BALL_VEL_MAX {
+                            ball_vel.y *= rand::gen_range(1.05, 1.1);
+                        }
+                    }
+                }
+
+                if ball_pos.x < 0.0 {
+                    ball_vel.x = -ball_vel.x;
+                    ball_pos.x = 0.0;
+                    voice_pong();
+                }
+                if ball_pos.x > LOGICAL_WIDTH - BALL_SIZE {
+                    ball_vel.x = -ball_vel.x;
+                    ball_pos.x = LOGICAL_WIDTH - BALL_SIZE;
+                    voice_pong();
+                }
+
+                if ball_pos.y < 0.0 {
+                    ball_vel.y = -ball_vel.y;
+                    ball_pos.y = 0.0;
+                    voice_pong();
+                }
+                if ball_pos.y > LOGICAL_HEIGHT + BALL_SIZE * 2.0 {
+                    if debug_never_die {
+                        ball_vel.y = -ball_vel.y;
+                        ball_pos.y = LOGICAL_HEIGHT + BALL_SIZE;
+                    } else {
+                        game_state = GameState::Gameover;
                     }
                 }
             }
-            if let GameState::Gameover = game_state {
-                if is_key_down(KeyCode::R)
-                    || wx >= BUTTON_RESTART_POS.x
-                        && wx <= BUTTON_RESTART_POS.x + BUTTON_RESTART_WIDTH
-                        && wy >= BUTTON_RESTART_POS.y
-                        && wy <= BUTTON_RESTART_POS.y + BUTTON_RESTART_HEIGHT
-                        && is_mouse_button_pressed(MouseButton::Left)
-                {
-                    paddle_x = LOGICAL_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
-                    game_state = GameState::Playing;
-                    point = 0;
+            if is_key_down(KeyCode::R)
+                || wx >= BUTTON_RESTART_POS.x
+                    && wx <= BUTTON_RESTART_POS.x + BUTTON_RESTART_WIDTH
+                    && wy >= BUTTON_RESTART_POS.y
+                    && wy <= BUTTON_RESTART_POS.y + BUTTON_RESTART_HEIGHT
+                    && is_mouse_button_pressed(MouseButton::Left)
+                    && GameState::Gameover == game_state
+            {
+                paddle_x = LOGICAL_WIDTH / 2.0 - PADDLE_WIDTH / 2.0;
+                game_state = GameState::Playing;
+                point = 0;
+                if !debug_cancle_ball_vel_max {
                     ball_pos = vec2(
                         rand::gen_range(BALL_SIZE, LOGICAL_WIDTH - BALL_SIZE),
                         BALL_SIZE * 2.0,
@@ -241,6 +248,15 @@ async fn main() {
                     ball_vel = vec2(
                         rand::gen_range(0.45, 0.65) * BALL_VEL_INIT * 1.1,
                         rand::gen_range(0.5, 0.75) * BALL_VEL_INIT,
+                    );
+                } else {
+                    ball_pos = vec2(
+                        rand::gen_range(BALL_SIZE, LOGICAL_WIDTH - BALL_SIZE),
+                        BALL_SIZE * 2.0,
+                    );
+                    ball_vel = vec2(
+                        rand::gen_range(-BALL_VEL_INIT, BALL_VEL_INIT) * 2.0,
+                        rand::gen_range(0.0, BALL_VEL_INIT),
                     );
                 }
             }
