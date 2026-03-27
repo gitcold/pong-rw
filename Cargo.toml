@@ -1,6 +1,7 @@
 [package]
 name = "pongrw"
-version = "0.2.1"
+version = "0.2.2"
+authors = ["Blueice1437 <y1658623870@163.com>"]
 edition = "2024"
 build = "src/build.rs"
 

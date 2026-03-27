@@ -21,12 +21,8 @@ fn main() {
 
     for &size in &sizes {
         // 调整图片大小到 size x size
-        let resized = image::imageops::resize(
-            &img,
-            size,
-            size,
-            image::imageops::FilterType::Lanczos3,
-        );
+        let resized =
+            image::imageops::resize(&img, size, size, image::imageops::FilterType::Lanczos3);
 
         // 将 RGBA 像素展平为字节数组
         let mut pixels = Vec::with_capacity((size * size * 4) as usize);
