@@ -19,4 +19,10 @@ audio_sample_rate = 44100
 audio_bit_depth = 32
 
 [build-dependencies]
+embed-resource = "3.0.8"
 image = "0.24"
+#winres = "0.1.12"
+
+#[package.metadata.winres]
+#Icon = "assets/icon.ico"
+
