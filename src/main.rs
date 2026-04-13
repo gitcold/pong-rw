@@ -1,7 +1,6 @@
-use crate::miniquad::conf::Icon;
 use macroquad::audio::*;
 use macroquad::prelude::*;
-use wasm_bindgen::prelude::*;
+//use wasm_bindgen::prelude::*;
 
 mod icon_data;
 use icon_data::ICON;
@@ -72,6 +71,7 @@ fn get_zoom(zoom_mode: i32) -> (Vec2, f32, f32) {
     }
     (zoom, wx, wy)
 }
+//窗口信息
 fn window_conf() -> Conf {
     Conf {
         window_title: "Pong-rust&wasm".to_string(),
@@ -91,6 +91,7 @@ async fn main() {
     let voice_pong1 = load_sound_from_bytes(VOICE_PONG1_BYTES).await.unwrap();
     let voice_pong2 = load_sound_from_bytes(VOICE_PONG2_BYTES).await.unwrap();
     let voice_pong3 = load_sound_from_bytes(VOICE_PONG3_BYTES).await.unwrap();
+    //随机播放碰撞音效
     let voice_pong = || {
         let s = rand::gen_range(1, 4);
         if s == 1 {
@@ -129,12 +130,13 @@ async fn main() {
     );
 
     loop {
+        //帧率
         let mut dt = get_frame_time();
         if 1.0 / dt < 30.0 {
             dt = 1.0 / 30.0
         }
         //println!("{}",debug_never_die);
-
+        //设置相机
         let (zoom, wx, wy) = get_zoom(zoom_mode);
         let camera = Camera2D {
             target: vec2(LOGICAL_WIDTH / 2.0, LOGICAL_HEIGHT / 2.0),
@@ -145,6 +147,7 @@ async fn main() {
 
         if !debug_freeze {
             if let GameState::Playing = game_state {
+                //挡板移动
                 if is_mouse_button_down(MouseButton::Left) {
                     if wx - (paddle_x + PADDLE_WIDTH / 2.0) >= PADDLE_VEC * dt {
                         paddle_x += PADDLE_VEC * dt;
@@ -167,7 +170,7 @@ async fn main() {
                         }
                     }
                 }
-
+                //小球移动
                 ball_pos += ball_vel * dt;
 
                 if ball_pos.x > paddle_x - BALL_SIZE
@@ -229,6 +232,7 @@ async fn main() {
                     }
                 }
             }
+            //restart
             if is_key_down(KeyCode::R)
                 || wx >= BUTTON_RESTART_POS.x
                     && wx <= BUTTON_RESTART_POS.x + BUTTON_RESTART_WIDTH
@@ -261,6 +265,7 @@ async fn main() {
                 }
             }
         }
+        //debug
         if is_key_pressed(KeyCode::Key1) {
             zoom_mode = 1;
         }
@@ -280,7 +285,7 @@ async fn main() {
             is_fullscreen = !is_fullscreen;
             set_fullscreen(is_fullscreen);
         }
-
+		//draw
         clear_background(BLACK);
         draw_circle(0.0, 0.0, 20.0, RED);
         draw_rectangle(paddle_x, PADDLE_Y, PADDLE_WIDTH, PADDLE_HEIGHT, WHITE);

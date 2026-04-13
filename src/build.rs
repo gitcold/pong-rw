@@ -1,4 +1,3 @@
-//use image::{GenericImageView, ImageFormat, Rgba};
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
@@ -70,11 +69,7 @@ fn main() {
     f.write_all(code.as_bytes()).unwrap();
     
     //windows icon
-    
     if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
-    	//let mut res = winres::WindowsResource::new();
-    	//res.set_icon("assets/icon.ico");
-    	//res.compile().unwrap();
     	embed_resource::compile("assets/resources.rc", embed_resource::NONE).manifest_optional().unwrap();
     }
 }

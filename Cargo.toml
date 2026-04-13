@@ -1,6 +1,6 @@
 [package]
 name = "pongrw"
-version = "0.2.2"
+version = "0.2.4"
 authors = ["Blueice1437 <y1658623870@163.com>"]
 edition = "2024"
 build = "src/build.rs"
@@ -10,7 +10,7 @@ lto = "thin"
 
 [dependencies]
 macroquad = {version="0.4.14",features=["audio"]}
-wasm-bindgen = "0.2.114"
+#wasm-bindgen = "0.2.117"
 
 [package.metadata.macroquad]
 # 强制音频采样率为44.1kHz（默认可能是22050Hz）
